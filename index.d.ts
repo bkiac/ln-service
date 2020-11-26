@@ -635,5 +635,81 @@ declare module "ln-service" {
    *
    * Requires `offchain:write` permission
    */
-  export const disconnectWatchtower: LNDMethod<DisconnectWatchtowerArgs>;
+  export const disconnectWatchtower: LNDMethod<
+    DisconnectWatchtowerArgs,
+    unknown
+  >;
+
+  export type FundPendingChannelsArgs = {
+    /** Pending Channel Id Hex */
+    channels: string;
+    /** Signed Funding Transaction PSBT Hex */
+    funding: string;
+  };
+
+  /**
+   * Fund pending channels
+   *
+   * Requires `offchain:write`, `onchain:write` permission
+   */
+  export const fundPendingChannels: LNDMethod<FundPendingChannelsArgs, unknown>;
+
+  export type FundPSBTArgs = {
+    /** Chain Fee Tokens Per Virtual Byte */
+    fee_tokens_per_vbyte?: number;
+    inputs?: {
+      /** Unspent Transaction Id Hex */
+      transaction_id: string;
+      /** Unspent Transaction Output Index */
+      transaction_vout: number;
+    }[];
+    outputs?: {
+      /** Chain Address */
+      address: string;
+      /** Send Tokens Tokens */
+      tokens: number;
+    }[];
+    /** Confirmations To Wait */
+    target_confirmations?: number;
+    /** Existing PSBT Hex */
+    psbt?: string;
+  };
+
+  export type FundPSBTResult = {
+    inputs: {
+      /** UTXO Lock Expires At ISO 8601 Date */
+      lock_expires_at?: string;
+      /** UTXO Lock Id Hex */
+      lock_id?: string;
+      /** Unspent Transaction Id Hex */
+      transaction_id: string;
+      /** Unspent Transaction Output Index */
+      transaction_vout: number;
+    }[];
+    outputs: {
+      /** Spends To a Generated Change Output */
+      is_change: boolean;
+      /** Output Script Hex */
+      output_script: string;
+      /** Send Tokens Tokens */
+      tokens: number;
+    }[];
+    /** Unsigned PSBT Hex */
+    psbt: string;
+  };
+
+  /**
+   * Lock and optionally select inputs to a partially signed transaction
+   *
+   * Specify outputs or PSBT with the outputs encoded
+   *
+   * If there are no inputs passed, internal UTXOs will be selected and locked
+   *
+   * Requires `onchain:write` permission
+   *
+   * Requires LND built with `walletrpc` tag
+   *
+   * This method is not supported in LND 0.11.1 and belo
+   */
+  export const fundPsbt: LNDMethod<FundPSBTArgs, FundPSBTResult>;
 }
