@@ -2,6 +2,7 @@
  * TODO:
  * - errors
  * - replace unknown result types
+ * - tokens number postfix
  */
 
 declare module "ln-service" {
@@ -46,6 +47,11 @@ declare module "ln-service" {
       args: Args<TArgs>,
       callback: (error: TError, result: TResult) => void
     ): void;
+  };
+
+  export type MethodWithoutLND<TArgs, TResult = void, TError = Error> = {
+    (args: TArgs): Promise<TResult>;
+    (args: TArgs, callback: (error: TError, result: TResult) => void): void;
   };
 
   const lnService: LNService;
@@ -353,4 +359,172 @@ declare module "ln-service" {
     CreateHodlInvoiceArgs,
     CreateHodlInvoiceResult
   >;
+
+  export type CreateInvoiceArgs = {
+    /** CLTV Delta */
+    cltv_delta?: number;
+    /** Invoice Description */
+    description?: string;
+    /** Hashed Description of Payment Hex */
+    description_hash?: string;
+    /** Expires At ISO 8601 Date */
+    expires_at?: string;
+    /** Is Fallback Address Included */
+    is_fallback_included?: boolean;
+    /** Is Fallback Address Nested */
+    is_fallback_nested?: boolean;
+    /** Invoice Includes Private Channels */
+    is_including_private_channels?: boolean;
+    /** Payment Preimage Hex */
+    secret?: string;
+    /** Millitokens */
+    mtokens?: string;
+    /** Tokens */
+    tokens?: number;
+  };
+
+  export type CreateInvoiceResult = {
+    /** Backup Address */
+    chain_address?: string;
+    /** ISO 8601 Date */
+    created_at: string;
+    /** Description */
+    description?: string;
+    /** Payment Hash Hex */
+    id: string;
+    /** Millitokens */
+    mtokens?: string;
+    /** BOLT 11 Encoded Payment Request */
+    request: string;
+    /** Hex Encoded Payment Secret */
+    secret: string;
+    /** Tokens */
+    tokens?: number;
+  };
+
+  /**
+   * Create a Lightning invoice.
+   *
+   * Requires `address:write`, `invoices:write` permissio
+   */
+  export const createInvoice: LNDMethod<CreateInvoiceArgs, CreateInvoiceResult>;
+
+  export type CreateSeedArgs = {
+    /** Seed Passphrase */
+    passphrase?: string;
+  };
+
+  export type CreateSeedResult = {
+    /** Cipher Seed Mnemonic */
+    seed: string;
+  };
+
+  /**
+   * Create a wallet seed
+   *
+   * Requires unlocked lnd and unauthenticated LND
+   */
+  export const createSeed: LNDMethod<CreateSeedArgs, CreateSeedResult>;
+
+  export type CreateSignedRequestArgs = {
+    /** Destination Public Key Hex */
+    destination: string;
+    /** Request Human Readable Part */
+    hrp: string;
+    /** Request Hash Signature Hex */
+    signature: string;
+    /** Request Tag Words */
+    tags: number[];
+  };
+
+  export type CreateSignedResult = {
+    /** BOLT 11 Encoded Payment Request */
+    request: string;
+  };
+
+  /**
+   * Assemble a signed payment request
+   */
+  export const createSignedRequest: MethodWithoutLND<
+    CreateSignedRequestArgs,
+    CreateSignedResult
+  >;
+
+  export type CreateUnsignedRequestArgs = {
+    /** Chain Addresses */
+    chain_addresses?: string[];
+    /** CLTV Delta */
+    cltv_delta?: number;
+    /** Invoice Creation Date ISO 8601 */
+    created_at?: string;
+    /** Description */
+    description?: string;
+    /** Description Hash Hex */
+    description_hash?: string;
+    /** Public Key */
+    destination: string;
+    /** ISO 8601 Date */
+    expires_at?: string;
+    features: {
+      /** BOLT 09 Feature Bit */
+      bit: number;
+    }[];
+    /** Preimage SHA256 Hash Hex */
+    id: string;
+    /** Requested Milli-Tokens Value (can exceed number limit) */
+    mtokens?: string;
+    /** Network Name */
+    network: string;
+    /** Payment Identifier Hex */
+    payment?: string;
+    routes?: {
+      /** Base Fee Millitokens */
+      base_fee_mtokens?: string;
+      /** Standard Format Channel Id */
+      channel?: string;
+      /** Final CLTV Expiration Blocks Delta */
+      cltv_delta?: number;
+      /** Fees Charged in Millitokens Per Million */
+      fee_rate?: number;
+      /** Forward Edge Public Key Hex */
+      public_key: string;
+    }[][];
+    /** Requested Chain Tokens Number (note: can differ from mtokens) */
+    tokens?: number;
+  };
+
+  export type CreateUnsignedRequestResult = {
+    /** Payment Request Signature Hash Hex */
+    hash: string;
+    /** Human Readable Part of Payment Request */
+    hrp: string;
+    /** Signature Hash Preimage Hex */
+    preimage: string;
+    /** Data Tag Numbers */
+    tags: number[];
+  };
+
+  /**
+   * Create an unsigned payment request
+   */
+  export const createUnsignedRequest: MethodWithoutLND<
+    CreateUnsignedRequestArgs,
+    CreateUnsignedRequestResult
+  >;
+
+  export type CreateWalletArgs = {
+    /** AEZSeed Encryption Passphrase */
+    passphrase?: string;
+    /** Wallet Password */
+    password: string;
+    /** Seed Mnemonic */
+    seed: string;
+  };
+
+  /**
+   * Create a wallet
+   *
+   * Requires unlocked lnd and unauthenticated LND
+   */
+  export const createWallet: LNDMethod<CreateWalletArgs, unknown>;
 }
