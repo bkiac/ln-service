@@ -5,7 +5,7 @@
  */
 
 declare module "ln-service" {
-  type LND = {
+  export type LND = {
     autopilot: any;
     chain: any;
     default: any;
@@ -17,8 +17,9 @@ declare module "ln-service" {
     wallet: any;
     version: any;
   };
+  export type LightningNetworkDaemon = LND;
 
-  type LNService = {
+  export type LNService = {
     /**
      * Initiate a gRPC API Methods Object for authenticated methods
      *
@@ -32,6 +33,19 @@ declare module "ln-service" {
       socket?: string;
     }) => { lnd: LND };
   };
+  export type LightningNetworkService = LNService;
+
+  export type Args<TArgs> = {
+    /** Authenticated LND API Object */
+    lnd: LND;
+  } & TArgs;
+  export type AsyncRequest<TArgs, TResult> = (
+    args: Args<TArgs>
+  ) => Promise<TResult>;
+  export type RequestWithCallback<TArgs, TResult, TError = Error> = (
+    args: Args<TArgs>,
+    callback: (error: TError, result: TResult) => void
+  ) => void;
 
   const lnService: LNService;
   export default lnService;
@@ -77,7 +91,7 @@ declare module "ln-service" {
   export function broadcastChainTransaction(variables: {
     /** Transaction Label String */
     description?: string;
-    /** Authenticated LND API Object */
+
     lnd: LND;
     /** Transaction Hex String */
     transaction: string;
