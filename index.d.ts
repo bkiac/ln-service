@@ -450,6 +450,19 @@ declare module "ln-service" {
     CreateSignedResult
   >;
 
+  export type Route = {
+    /** Base Fee Millitokens */
+    base_fee_mtokens?: string;
+    /** Standard Format Channel Id */
+    channel?: string;
+    /** Final CLTV Expiration Blocks Delta */
+    cltv_delta?: number;
+    /** Fees Charged in Millitokens Per Million */
+    fee_rate?: number;
+    /** Forward Edge Public Key Hex */
+    public_key: string;
+  };
+
   export type CreateUnsignedRequestArgs = {
     /** Chain Addresses */
     chain_addresses?: string[];
@@ -477,18 +490,7 @@ declare module "ln-service" {
     network: string;
     /** Payment Identifier Hex */
     payment?: string;
-    routes?: {
-      /** Base Fee Millitokens */
-      base_fee_mtokens?: string;
-      /** Standard Format Channel Id */
-      channel?: string;
-      /** Final CLTV Expiration Blocks Delta */
-      cltv_delta?: number;
-      /** Fees Charged in Millitokens Per Million */
-      fee_rate?: number;
-      /** Forward Edge Public Key Hex */
-      public_key: string;
-    }[][];
+    routes?: Route[][];
     /** Requested Chain Tokens Number (note: can differ from mtokens) */
     tokens?: number;
   };
@@ -527,4 +529,111 @@ declare module "ln-service" {
    * Requires unlocked lnd and unauthenticated LND
    */
   export const createWallet: LNDMethod<CreateWalletArgs, unknown>;
+
+  export type DecodePaymentRequestArgs = {
+    /** BOLT 11 Payment Request */
+    request: string;
+  };
+
+  export type DecodePaymentRequestResult = {
+    /** Fallback Chain Address */
+    chain_address: string;
+    /** Final CLTV Delta */
+    cltv_delta?: number;
+    /** Payment Description */
+    description: string;
+    /** Payment Longer Description Hash */
+    description_hash: string;
+    /** Public Key */
+    destination: string;
+    /** ISO 8601 Date */
+    expires_at: string;
+    features: {
+      /** BOLT 09 Feature Bit */
+      bit: number;
+      /** Feature is Known */
+      is_known: boolean;
+      /** Feature Support is Required To Pay */
+      is_required: boolean;
+      /** Feature Type */
+      type: string;
+    }[];
+    /** Payment Hash */
+    id: string;
+    /** Requested Millitokens */
+    mtokens: string;
+    /** Payment Identifier Hex Encoded */
+    payment?: string;
+    routes: Route[][];
+    /** Requested Tokens Rounded Up */
+    safe_tokens: number;
+    /** Requested Tokens Rounded Down */
+    tokens: number;
+  };
+
+  /**
+   * Get decoded payment request
+   *
+   * Requires `offchain:read` permission
+   */
+  export const decodePaymentRequest: LNDMethod<
+    DecodePaymentRequestArgs,
+    DecodePaymentRequestResult
+  >;
+
+  /**
+   * Delete all forwarding reputations
+   *
+   * Requires `offchain:write` permissio
+   */
+  export const deleteForwardingReputations: LNDMethod<{}, unknown>;
+
+  /**
+   * Delete all records of payments
+   *
+   * Requires `offchain:write` permission
+   */
+  export const deletePayments: LNDMethod<{}, unknown>;
+
+  export type DiffieHellmanComputeSecretArgs = {
+    /** Key Family */
+    key_family?: number;
+    /** Key Index */
+    key_index?: number;
+    /** Public Key Hex */
+    partner_public_key: string;
+  };
+
+  export type DiffieHellmanComputeSecretResult = {
+    /** Shared Secret Hex */
+    secret: string;
+  };
+
+  /**
+   * Derive a shared secret
+   *
+   * Key family and key index default to 6 and 0, which is the node identity key
+   *
+   * Requires LND built with `signerrpc` build tag
+   *
+   * Requires `signer:generate` permission
+   */
+  export const diffieHellmanComputeSecret: LNDMethod<
+    DiffieHellmanComputeSecretArgs,
+    DiffieHellmanComputeSecretResult
+  >;
+
+  export type DisconnectWatchtowerArgs = {
+    /** Watchtower Public Key Hex */
+    public_key: string;
+  };
+
+  /**
+   * Disconnect a watchtower
+   *
+   * Requires LND built with `wtclientrpc` build tag
+   *
+   * Requires `offchain:write` permission
+   */
+  export const disconnectWatchtower: LNDMethod<DisconnectWatchtowerArgs>;
 }
